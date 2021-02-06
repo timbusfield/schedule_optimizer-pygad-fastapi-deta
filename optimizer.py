@@ -8,21 +8,15 @@ TASK_START = "start"
 TASK_END = "end"
 
 
-# # ToDo try again to import this from another file
-# class Task(BaseModel):
-#     duration: int
-#     people: int
-
-
-class FormA(BaseModel):
+class TaskEvent(BaseModel):
     event: str
     time: int
     people: int
 
 
-class FormB(BaseModel):
-    time_a: int
-    time_b: int
+class ResourceTimeSpan(BaseModel):
+    span_start_time: int
+    span_end_time: int
     people: int
 
 
@@ -31,11 +25,11 @@ def _item_iterator(solution_inputs):
     return range(number_items)
 
 
-def people_score(form_b: FormB, max_number_people):
+def excess_people_penalty(form_b: ResourceTimeSpan, max_number_people):
     if form_b.people <= max_number_people:
         return 0
     else:
-        return (form_b.time_b - form_b.time_a) *\
+        return (form_b.span_end_time - form_b.span_start_time) * \
                (form_b.people - max_number_people)
 
 
@@ -48,7 +42,7 @@ def run_optimization(solution_inputs, optimization_parameters):
         total_duration = np.max(ends) - np.min(starts)
 
         form_a_events = [
-            FormA(
+            TaskEvent(
                 time = starts[i],
                 people = solution_inputs[i].people,
                 event = TASK_START
@@ -56,7 +50,7 @@ def run_optimization(solution_inputs, optimization_parameters):
             for i in item_iterator
         ]
         form_a_events = form_a_events + [
-            FormA(
+            TaskEvent(
                 time = ends[i],
                 people = solution_inputs[i].people,
                 event = TASK_END
@@ -72,28 +66,19 @@ def run_optimization(solution_inputs, optimization_parameters):
                 running_people += form_a_events[i - 1].people
             else:
                 running_people -= form_a_events[i - 1].people
-            aaa = FormB(
+            aaa = ResourceTimeSpan(
                 time_a = form_a_events[i - 1].time,
                 time_b = form_a_events[i].time,
                 people = running_people
             )
             form_b_events.append(aaa)
 
-        people_resource_score = np.sum([
-            people_score(x, optimization_parameters.max_people)
+        sum_excess_people_penalty = np.sum([
+            excess_people_penalty(x, optimization_parameters.max_people)
             for x in form_b_events
         ])
 
-        return 1.0 / ((1 * total_duration) + (1000 * people_resource_score))
-
-    # last_fitness = 0
-    #
-    # def callback_generation(ga_instance):
-    #     global last_fitness
-    #     print("Generation = {generation}".format(generation=ga_instance.generations_completed))
-    #     print("Fitness    = {fitness}".format(fitness=ga_instance.best_solution()[1]))
-    #     print("Change     = {change}".format(change=ga_instance.best_solution()[1] - last_fitness))
-    #     last_fitness = ga_instance.best_solution()[1]
+        return 1.0 / ((1 * total_duration) + (1000 * sum_excess_people_penalty))
 
     fitness_function = fitness_func
     ga_instance = pygad.GA(

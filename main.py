@@ -9,8 +9,10 @@ app = FastAPI()
 
 
 class Task(BaseModel):
+    task_id: str
     duration: int
     people: int
+    task_prerequisites: Optional[List[str]] = None
 
 
 class TaskSet(BaseModel):
@@ -24,9 +26,9 @@ class TaskSetKey(TaskSet):
 
 class OptimizationParameters(BaseModel):
     max_people: int
-    population_size: Optional[int] = 10 #50
-    number_generations: Optional[int] = 4 #100
-    number_parents_mating: Optional[int] = 2 #10
+    population_size: Optional[int] = 50
+    number_generations: Optional[int] = 100
+    number_parents_mating: Optional[int] = 10
     parent_selection_type: Optional[str] = "sss"
     keep_parents: Optional[int] = -1
     crossover_type: Optional[str] = "single_point"
