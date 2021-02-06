@@ -1,0 +1,4 @@
+deta
+fastapi
+pygad
+numpy

@@ -1,0 +1,1 @@
+{"id":"8377180d-7023-4ac4-9772-1d5a62f0faf0","space":2462,"runtime":"python3.7","name":"GAScheduleOptimizer","path":"dbtxch","project":"a0ymkkao","account":"144798365827","region":"eu-west-2","deps":["fastapi","pygad","deta","numpy"],"envs":null,"public":true,"log_level":"debug","cron":"","reload_deps":false}
