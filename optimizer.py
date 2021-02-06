@@ -67,8 +67,8 @@ def run_optimization(solution_inputs, optimization_parameters):
             else:
                 running_people -= form_a_events[i - 1].people
             aaa = ResourceTimeSpan(
-                time_a = form_a_events[i - 1].time,
-                time_b = form_a_events[i].time,
+                span_start_time = form_a_events[i - 1].time,
+                span_end_time = form_a_events[i].time,
                 people = running_people
             )
             form_b_events.append(aaa)
@@ -99,7 +99,20 @@ def run_optimization(solution_inputs, optimization_parameters):
     )
     ga_instance.run()
     solution, solution_fitness, solution_idx = ga_instance.best_solution()
-    outcome = ["Parameters of the best solution : {solution}".format(solution=solution),
-               "Fitness value of the best solution = {solution_fitness}".format(solution_fitness=solution_fitness),
-               "Index of the best solution : {solution_idx}".format(solution_idx=solution_idx)]
-    return "\n".join(outcome)
+    outcome = {
+        "solution_parameters": solution,
+        "solution_fitness": solution_fitness,
+        "solution_index": solution_idx
+    }
+    scheduled_tasks = []
+    for i,task in enumerate(solution_inputs):
+        scheduled_tasks.append({
+            **task.dict(),
+            **{"start": int(solution[i]), "end": int(solution[i] + task.duration)
+               }
+        })
+    return {"scheduled_tasks": scheduled_tasks, "outcome": outcome}
+    # outcome = ["Parameters of the best solution : {solution}".format(solution=solution),
+    #            "Fitness value of the best solution = {solution_fitness}".format(solution_fitness=solution_fitness),
+    #            "Index of the best solution : {solution_idx}".format(solution_idx=solution_idx)]
+    # return "\n".join(outcome)

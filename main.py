@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 from deta_base import create_taskset, get_taskset
+from deta_base import optimization_requested_record, optimization_completed_record
 from optimizer import run_optimization
 
 app = FastAPI()
@@ -13,6 +14,11 @@ class Task(BaseModel):
     duration: int
     people: int
     task_prerequisites: Optional[List[str]] = None
+
+
+class ScheduledTask(Task):
+    start: int
+    end: int
 
 
 class TaskSet(BaseModel):
@@ -63,8 +69,12 @@ def run_optimization_api(taskset_key: str, optimization_parameters: Optimization
     if taskset is None:
         raise HTTPException(status_code=404, detail="Item not found")
     taskset = TaskSetKey.parse_obj(taskset)
+    optimization_requested_record(taskset.key, optimization_parameters)
     result = run_optimization(
         taskset.tasks,
         optimization_parameters
     )
-    return result
+    optimization_completed_record(
+        taskset.key, optimization_parameters,
+        result["scheduled_tasks"], result["outcome"]["solution_fitness"])
+    return "Completed"
